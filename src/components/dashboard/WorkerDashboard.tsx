@@ -58,6 +58,9 @@ export const WorkerDashboard = () => {
   // NEW: period + calendar state
   const [period, setPeriod] = useState<"week" | "month" | "year">("month");
   const [anchorDate, setAnchorDate] = useState<Date>(new Date());
+  // NEW: day detail drawer state
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [dayDrawerOpen, setDayDrawerOpen] = useState(false);
 
   // Role guard + redirect
   useEffect(() => {
@@ -161,6 +164,33 @@ export const WorkerDashboard = () => {
     };
   }, [periodFilteredTips]);
 
+  // CSV download for current period
+  const downloadCSV = () => {
+    const rows = [
+      ["Date", "Amount (INR)", "Amount (cents)", "Currency", "Payer", "Message", "Status", "Tip ID"],
+      ...periodFilteredTips.map((t) => [
+        new Date(t.createdAt).toLocaleString(),
+        (t.amountCents / 100).toLocaleString("en-IN", { maximumFractionDigits: 2 }),
+        String(t.amountCents),
+        t.currency,
+        t.payerName ?? "",
+        (t.message ?? "").replace(/\n|\r|\t/g, " "),
+        t.status,
+        String(t.id),
+      ]),
+    ];
+    const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `tips-${period}-${new Date(anchorDate).toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
+
   // Month calendar data (uses anchorDate's month)
   const monthCalendar = useMemo(() => {
     const base = new Date(anchorDate);
@@ -206,6 +236,19 @@ export const WorkerDashboard = () => {
       return acc + (dt.getFullYear() === y ? (t.amountCents || 0) : 0);
     }, 0);
   }, [allTips, anchorDate]);
+
+  // Selected day tips
+  const selectedDayTips = useMemo(() => {
+    if (!selectedDate) return [] as TipsSummaryResponse["data"]; 
+    const y = selectedDate.getFullYear();
+    const m = selectedDate.getMonth();
+    const d = selectedDate.getDate();
+    return allTips.filter((t) => {
+      const dt = new Date(t.createdAt);
+      return dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d;
+    });
+  }, [selectedDate, allTips]);
+  const selectedDayTotal = useMemo(() => selectedDayTips.reduce((a, t) => a + (t.amountCents || 0), 0), [selectedDayTips]);
 
   if (isPending) {
     return (
@@ -332,7 +375,10 @@ export const WorkerDashboard = () => {
       <div className="mt-6 rounded-2xl border bg-card p-5 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold">Earnings Calendar</h3>
-          <div className="text-sm text-muted-foreground">{monthCalendar.monthLabel}</div>
+          <div className="flex items-center gap-3">
+            <button onClick={downloadCSV} className="h-8 rounded-md border px-3 text-xs hover:bg-accent">Download CSV</button>
+            <div className="text-sm text-muted-foreground">{monthCalendar.monthLabel}</div>
+          </div>
         </div>
         <div className="mt-3 grid grid-cols-7 gap-1">
           {["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].map((d) => (
@@ -352,14 +398,55 @@ export const WorkerDashboard = () => {
                     ? "bg-chart-4/60"
                     : "bg-chart-5/80";
             return (
-              <div key={i} className={`aspect-square rounded-md border text-[11px] flex items-center justify-center ${bg}`} title={c.day ? `${c.day}: ${formatINR(c.amountCents)}` : ""}>
+              <div
+                key={i}
+                onClick={() => {
+                  if (c.day === null) return;
+                  const y = anchorDate.getFullYear();
+                  const m = anchorDate.getMonth();
+                  setSelectedDate(new Date(y, m, c.day));
+                  setDayDrawerOpen(true);
+                }}
+                className={`aspect-square rounded-md border text-[11px] flex items-center justify-center ${c.day !== null ? "cursor-pointer hover:ring-2 hover:ring-ring/50" : ""} ${bg}`}
+                title={c.day ? `${c.day}: ${formatINR(c.amountCents)}` : ""}
+              >
                 {c.day ?? ""}
               </div>
             );
           })}
         </div>
-        <div className="mt-3 text-xs text-muted-foreground">Click days to view amounts in the tooltip.</div>
+        <div className="mt-3 text-xs text-muted-foreground">Click a day to see detailed tips.</div>
       </div>
+
+      {/* Day detail drawer */}
+      {dayDrawerOpen && selectedDate && (
+        <div className="fixed inset-0 z-50">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setDayDrawerOpen(false)} />
+          <div className="absolute inset-x-0 bottom-0 sm:inset-auto sm:right-4 sm:top-4 sm:w-[380px] sm:rounded-xl sm:border sm:bg-card sm:shadow-xl bg-card border-t rounded-t-xl p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">{selectedDate.toLocaleDateString()}</div>
+                <div className="text-lg font-semibold">{formatINR(selectedDayTotal)}</div>
+              </div>
+              <button className="h-8 rounded-md border px-3 text-xs hover:bg-accent" onClick={() => setDayDrawerOpen(false)}>Close</button>
+            </div>
+            <div className="mt-3 max-h-[50vh] sm:max-h-[70vh] overflow-y-auto">
+              {selectedDayTips.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No tips for this day.</p>
+              ) : (
+                <ul className="divide-y">
+                  {selectedDayTips.map((t) => (
+                    <li key={t.id} className="py-2 text-sm flex items-center justify-between">
+                      <span className="text-muted-foreground">{new Date(t.createdAt).toLocaleTimeString()}</span>
+                      <span className="font-medium">{formatINR(t.amountCents)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Recent tips list */}
       <div className="mt-6 rounded-2xl border bg-card p-5 shadow-sm">
