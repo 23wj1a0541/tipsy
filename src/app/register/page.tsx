@@ -87,8 +87,9 @@ export default function RegisterPage() {
         body: JSON.stringify({ role }),
       });
 
-      // Redirect to onboarding based on role
-      router.push(role === "owner" ? "/onboarding/owner" : "/onboarding/worker");
+      // Redirect to login instead of dashboard/onboarding
+      const params = new URLSearchParams({ registered: "true", role });
+      router.push(`/login?${params.toString()}`);
     } finally {
       setLoading(false);
     }
