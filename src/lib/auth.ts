@@ -2,7 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { bearer } from "better-auth/plugins";
 import { NextRequest } from 'next/server';
-import { headers } from "next/headers"
+import { headers as nextHeaders } from "next/headers"
 import { db } from "@/db";
  
 export const auth = betterAuth({
@@ -16,7 +16,8 @@ export const auth = betterAuth({
 });
 
 // Session validation helper
-export async function getCurrentUser(request: NextRequest) {
-  const session = await auth.api.getSession({ headers: await headers() });
+export async function getCurrentUser(request?: NextRequest | { headers: Headers }) {
+  const hdrs = request?.headers ?? (await nextHeaders());
+  const session = await auth.api.getSession({ headers: hdrs });
   return session?.user || null;
 }

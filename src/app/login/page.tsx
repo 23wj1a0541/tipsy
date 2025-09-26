@@ -58,7 +58,27 @@ function LoginContent() {
         setError("Invalid email or password. Please try again.");
         return;
       }
-      // Do not navigate here; wait for session and let useEffect redirect
+      // Immediately fetch session using freshly set bearer token, then redirect
+      const token = typeof window !== "undefined" ? localStorage.getItem("bearer_token") || "" : "";
+      const res = await authClient.getSession({
+        fetchOptions: {
+          auth: token ? { type: "Bearer", token } : undefined,
+        },
+      });
+      const s = res?.data;
+      if (s?.user) {
+        const redirectParam = params.get("redirect");
+        if (redirectParam) {
+          router.push(redirectParam);
+          return;
+        }
+        const role = (s.user as any).role as string | undefined;
+        if (role === "owner") router.push("/dashboard/owner");
+        else if (role === "worker") router.push("/dashboard/worker");
+        else if (role === "admin") router.push("/admin");
+        else router.push("/");
+      }
+      // Fallback: let useEffect handle if session arrives slightly later
     } finally {
       setLoading(false);
     }
