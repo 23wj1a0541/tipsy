@@ -1,12 +1,24 @@
 import type { Metadata } from "next";
 import AdminUsersManager from "@/components/admin/AdminUsersManager";
 import FeatureTogglesManager from "@/components/admin/FeatureTogglesManager";
+import { auth } from "@/lib/auth";
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Admin • Users",
 };
 
-export default function AdminPage() {
+export default async function AdminPage() {
+  const session = await auth.api.getSession({ headers: await headers() });
+  const user = session?.user;
+  if (!user) {
+    redirect(`/login?redirect=${encodeURIComponent("/admin")}`);
+  }
+  if (user.role !== "admin") {
+    redirect("/");
+  }
+
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 space-y-10">
       <div className="space-y-1">

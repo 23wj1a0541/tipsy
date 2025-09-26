@@ -25,10 +25,23 @@ function LoginContent() {
 
   useEffect(() => {
     if (!isPending && session?.user) {
-      // Already signed in
-      router.push("/");
+      const redirectParam = params.get("redirect");
+      if (redirectParam) {
+        router.push(redirectParam);
+        return;
+      }
+      const role = session.user.role as string | undefined;
+      if (role === "owner") {
+        router.push("/dashboard/owner");
+      } else if (role === "worker") {
+        router.push("/dashboard/worker");
+      } else if (role === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/");
+      }
     }
-  }, [session, isPending, router]);
+  }, [session, isPending, router, params]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,15 +52,13 @@ function LoginContent() {
         email,
         password,
         rememberMe,
-        callbackURL: "/admin", // protected route; auth lib will handle
+        // omit callbackURL; useEffect will route based on role or redirect param
       });
       if (error?.code) {
         setError("Invalid email or password. Please try again.");
         return;
       }
-      // Token is stored via auth-client hook. Redirect to intended page if provided
-      const redirect = params.get("redirect");
-      router.push(redirect || "/");
+      // Do not navigate here; wait for session and let useEffect redirect
     } finally {
       setLoading(false);
     }
