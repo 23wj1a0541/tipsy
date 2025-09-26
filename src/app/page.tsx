@@ -100,7 +100,8 @@ export default function Home() {
           <nav className="flex items-center gap-4">
             <Link href="/scan" className="hover:underline">Scan QR</Link>
             <Link href="/profile" className="hover:underline">Profile</Link>
-            <Link href="/admin" className="hover:underline">Admin</Link>
+            {/* Hide Admin link from public footer */}
+            {/* <Link href="/admin" className="hover:underline">Admin</Link> */}
             <Link href="/onboarding/worker" className="hover:underline">Worker Onboarding</Link>
             <Link href="/onboarding/owner" className="hover:underline">Owner Onboarding</Link>
             <Link href="/login" className="hover:underline">Login</Link>

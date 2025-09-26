@@ -4,6 +4,7 @@ import VisualEditsMessenger from "../visual-edits/VisualEditsMessenger";
 import ErrorReporter from "@/components/ErrorReporter";
 import Script from "next/script";
 import NavBar from "@/components/NavBar";
+import AdminLockButton from "@/components/AdminLockButton";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -31,6 +32,7 @@ export default function RootLayout({
         />
         <NavBar />
         {children}
+        <AdminLockButton />
         <VisualEditsMessenger />
       </body>
     </html>

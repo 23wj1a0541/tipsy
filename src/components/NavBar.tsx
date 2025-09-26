@@ -54,9 +54,6 @@ export const NavBar = () => {
               Dashboard
             </Link>
           )}
-          {session?.user?.role === "admin" && (
-            <Link className={`hover:underline ${isActive("/admin") ? "underline" : ""}`} href="/admin">Admin</Link>
-          )}
           {!!session?.user ? (
             <button onClick={handleSignOut} className="px-3 py-1.5 rounded-md border border-input hover:bg-accent text-sm">Sign out</button>
           ) : (
@@ -71,9 +68,6 @@ export const NavBar = () => {
             <Link href="/" className="py-1" onClick={() => setIsOpen(false)}>Home</Link>
             {!!session?.user && (
               <Link href={dashboardHref} className="py-1" onClick={() => setIsOpen(false)}>Dashboard</Link>
-            )}
-            {session?.user?.role === "admin" && (
-              <Link href="/admin" className="py-1" onClick={() => setIsOpen(false)}>Admin</Link>
             )}
             {!!session?.user ? (
               <button onClick={handleSignOut} className="text-left py-1">Sign out</button>
