@@ -24,12 +24,14 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Link
               href="/login?role=worker"
+              prefetch
               className="inline-flex h-10 items-center justify-center rounded-md bg-foreground px-4 text-sm font-medium text-background hover:opacity-90"
             >
               I serve customers (Worker)
             </Link>
             <Link
               href="/login?role=owner"
+              prefetch
               className="inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium hover:bg-accent"
             >
               I run a restaurant (Owner)
@@ -68,10 +70,10 @@ export default function Home() {
               Own your earnings with a personal tipping profile, live notifications, and a beautiful QR badge.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href="/login?role=worker" className="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-background text-sm">
+              <Link href="/login?role=worker" prefetch className="inline-flex h-9 items-center rounded-md bg-foreground px-3 text-background text-sm">
                 Worker Login
               </Link>
-              <Link href="/login?role=worker" className="inline-flex h-9 items-center rounded-md border px-3 text-sm hover:bg-accent">
+              <Link href="/login?role=worker" prefetch className="inline-flex h-9 items-center rounded-md border px-3 text-sm hover:bg-accent">
                 View Dashboard
               </Link>
             </div>
@@ -82,10 +84,10 @@ export default function Home() {
               Manage staff, track performance, moderate reviews, and grow your brand reputation.
             </p>
             <div className="flex flex-wrap gap-2">
-              <Link href="/login?role=owner" className="inline-flex h-9 items-center rounded-md border px-3 text-sm hover:bg-accent">
+              <Link href="/login?role=owner" prefetch className="inline-flex h-9 items-center rounded-md border px-3 text-sm hover:bg-accent">
                 Owner Login
               </Link>
-              <Link href="/login?role=owner" className="inline-flex h-9 items-center rounded-md border px-3 text-sm hover:bg-accent">
+              <Link href="/login?role=owner" prefetch className="inline-flex h-9 items-center rounded-md border px-3 text-sm hover:bg-accent">
                 View Dashboard
               </Link>
             </div>
@@ -104,7 +106,7 @@ export default function Home() {
             {/* <Link href="/admin" className="hover:underline">Admin</Link> */}
             <Link href="/onboarding/worker" className="hover:underline">Worker Onboarding</Link>
             <Link href="/onboarding/owner" className="hover:underline">Owner Onboarding</Link>
-            <Link href="/login" className="hover:underline">Login</Link>
+            <Link href="/login" prefetch className="hover:underline">Login</Link>
           </nav>
         </div>
       </footer>
