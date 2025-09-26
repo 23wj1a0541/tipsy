@@ -101,6 +101,8 @@ export default function Home() {
             <Link href="/scan" className="hover:underline">Scan QR</Link>
             <Link href="/profile" className="hover:underline">Profile</Link>
             <Link href="/admin" className="hover:underline">Admin</Link>
+            <Link href="/onboarding/worker" className="hover:underline">Worker Onboarding</Link>
+            <Link href="/onboarding/owner" className="hover:underline">Owner Onboarding</Link>
             <Link href="/login" className="hover:underline">Login</Link>
           </nav>
         </div>

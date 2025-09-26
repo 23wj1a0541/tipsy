@@ -1,15 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { authClient } from "@/lib/auth-client";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const params = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<"owner" | "worker">((params.get("role") as any) === "worker" ? "worker" : "owner");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -36,7 +38,19 @@ export default function RegisterPage() {
         return;
       }
 
-      router.push("/login?registered=true");
+      // After successful sign up, set initial role (owner/worker)
+      const token = typeof window !== "undefined" ? localStorage.getItem("bearer_token") : null;
+      await fetch("/api/me/role", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ role }),
+      });
+
+      // Redirect to onboarding based on role
+      router.push(role === "owner" ? "/onboarding/owner" : "/onboarding/worker");
     } finally {
       setLoading(false);
     }
@@ -98,6 +112,27 @@ export default function RegisterPage() {
             className="w-full px-3 py-2 border rounded-md bg-background"
             placeholder="••••••••"
           />
+        </div>
+        {/* Role selection */}
+        <div className="space-y-2">
+          <label className="text-sm">I am a</label>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setRole("worker")}
+              className={`h-10 rounded-md border px-3 text-sm ${role === "worker" ? "bg-foreground text-background" : "hover:bg-accent"}`}
+            >
+              Worker
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("owner")}
+              className={`h-10 rounded-md border px-3 text-sm ${role === "owner" ? "bg-foreground text-background" : "hover:bg-accent"}`}
+            >
+              Owner
+            </button>
+          </div>
+          <p className="text-xs text-muted-foreground">You can change this later in settings (owners with restaurants cannot switch to worker).</p>
         </div>
         {error && <div className="text-sm text-destructive">{error}</div>}
         <button
